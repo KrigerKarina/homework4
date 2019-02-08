@@ -1,0 +1,91 @@
+<?php
+class Request
+{
+    protected $errors = [];
+    protected $cleanPostParams = [];
+
+    public function isGet()
+    {
+        return $_SERVER['REQUEST_METHOD'] === "GET";
+    }
+
+    public function isPost()
+    {
+        return $_SERVER['REQUEST_METHOD'] === "POST";
+    }
+
+    public function required($name)
+    {
+        if(empty($this->getFromPostWithClean($name))) {
+            $this->errors[$name][] = 'Поле обязательно для заполнения';
+        }
+        return $this;
+    }
+
+    public function max($name, $max)
+    {
+        if(mb_strlen($this->getFromPostWithClean($name)) > $max) {
+            $this->errors[$name][] = 'Максимальное количество символов - ' . $max;
+        }
+        return $this;
+    }
+
+    public function min($name, $min)
+    {
+        if(mb_strlen($this->getFromPostWithClean($name)) < $min) {
+            $this->errors[$name][] = 'Минимальное количество символов - ' . $min;
+        }
+        return $this;
+    }
+
+    public function isValid()
+    {
+        return !count($this->errors);
+    }
+    public function getErrors()
+    {
+        return $this->errors;
+    }
+    /*
+     * Получение и очистка из поста.
+     */
+    public function getFromPostWithClean($name)
+    {
+        if(isset($this->cleanPostParams[$name]) && $this->cleanPostParams[$name]) {
+            return $this->cleanPostParams[$name];
+        }else {
+            $value = $_POST[$name];
+            $value = trim($value);
+            $value = htmlspecialchars($value);
+            $this->cleanPostParams[$name] = $value;
+            return $value;
+        }
+    }
+
+    public function checkEmail($name)
+    {
+        $name = '';
+        if (filter_var($name, FILTER_VALIDATE_EMAIL) !== false)
+        { 
+            return $name;
+        }
+    }
+
+    public function isInt($name)
+    { 
+        if ((is_int($value) || ctype_digit($value)) && (int)$value > 0 )
+        {
+        return TRUE;
+        }
+        $this->errors[$name][] = 'Введенно некорректное значение';
+     }
+
+
+     public function validateDate($name, $format = 'd-m-Y ')
+    {
+        $d = DateTime::createFromFormat($format, $name);
+        return $d && $d->format($format) == $name;
+        }
+
+    }
+
