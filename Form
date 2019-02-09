@@ -1,13 +1,11 @@
 <?php
-// var_dump($_SERVER['REQUEST_METHOD']);
-// var_dump($_GET);
-// var_dump($_POST);
 require('/Request.php');
 $request = new Request;
 $errors = [];
 if($request->isPost()) {
     $request->required('title');
     $request->required('email');
+    $request->checkIndexPublish('publish_in_index');
     $request->max('title', 255);
     $request->max('annotation', 500);
     $request->max('content', 30000);
@@ -15,6 +13,8 @@ if($request->isPost()) {
     $request->checkEmail('email');
     $request->isInt('views');
     $request->validateDate('date');
+    $request->checkIndexPublish('category');
+    $request->checkCategory('category', 1, 2, 3);
     $isValid = $request->isValid();
     $errors = $request->getErrors();
 }
@@ -145,35 +145,50 @@ if($request->isPost()) {
                 </div>
             </div>
 
-            <div class="form-group row">
+        <div class="form-group row">
                 <label class="col-md-2 col-form-label">Публиковать на главной</label>
                 <div class="col-md-10">
                     <div class="form-check">
-                        <input class="form-check-input" type="radio" name="publish_in_index" id="publish_in_index_yes" value="yes" checked>
+                        <input 
+                            class="form-check-input <?php echo($errors['publish_in_index'] ? 'is-invalid' : '') ?>" 
+                            type="radio" 
+                            name="publish_in_index" 
+                            id="publish_in_index_yes" 
+                            value="yes" >
                         <label class="form-check-label" for="publish_in_index_yes">
                             Да
                         </label>
                     </div>
-                    <div class="form-check">
-                        <input class="form-check-input" type="radio" name="publish_in_index" id="publish_in_index_no" value="no">
+                    <div class=form-check"">
+                        <input 
+                            class="form-check-input <?php echo($errors['publish_in_index'] ? 'is-invalid' : '') ?>" 
+                            type="radio" 
+                            name="publish_in_index" 
+                            id="publish_in_index_no" 
+                            value="no">
                         <label class="form-check-label" for="publish_in_index_no">
                             Нет
                         </label>
                     </div>
-                    <div class="invalid-feedback"></div>
+                    <div class="invalid-feedback">
+                        <?php echo($errors['publish_in_index'] ? $errors['publish_in_index'][0] : ''); ?>
+                    </div>
                 </div>
             </div>
 
             <div class="form-group row">
                 <label for="category" class="col-md-2 col-form-label">Публичная новость</label>
                 <div class="col-md-10">
-                    <select id="category" class="form-control" name="category">
+                    <select id="category" class="form-control <?php echo($errors['category'] ? 'is-invalid' : '') ?>" 
+                        name="category"> name="category">
                         <option disabled selected>Выберите категорию из списка..</option>
                         <option value="1">Спорт</option>
                         <option value="2">Культура</option>
                         <option value="3">Политика</option>
                     </select>
-                    <div class="invalid-feedback"></div>
+                    <div class="invalid-feedback">
+                        <?php echo($errors['category'] ? $errors['category'][0] : '') ?>
+                    </div>
                 </div>
             </div>
 
@@ -182,7 +197,9 @@ if($request->isPost()) {
                     <button type="submit" class="btn btn-primary">Отправить</button>
                 </div>
                 <div class="col-md-3">
+                    <?php if(isset($isValid) && $isValid): ?>
                     <div class="alert alert-success">Форма валидна</div>
+                     <?php endif; ?>
                 </div>
             </div>
         </form>
@@ -191,3 +208,4 @@ if($request->isPost()) {
 </div>
 </body>
 </html>
+
